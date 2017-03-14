@@ -8,12 +8,29 @@
 
 using namespace std;
 
+/**
+ * Struct Node to add nodes at the Bayesian Network
+ * Attributes
+ * ----------
+ * Parents: The parents of the node. For 0 or N-parents;
+ *          if the vector is empty, the event is Independient.
+ * Probability_table: Probability table for actual node. Key is X in P(X).
+ * Name: Name of the node.
+ */
 struct node{
 	std::vector<struct node*> parents; 
 	std::map<string, double> probabilityTable;  
 	string name;
 };
 
+
+/**
+ * Function to find hidden nodes in the joint
+ * Attributes
+ * ----------
+ * Nodes : The map of nodes to add their Probabilities.
+ * key_node : The key node.
+ */
 string hiddenNodes(map<string, struct node*> nodes, string nodeKey){
 	string builder="";
 	if(nodes[nodeKey]->parents.empty()){
@@ -27,6 +44,38 @@ string hiddenNodes(map<string, struct node*> nodes, string nodeKey){
 	return builder;
 }
 
+
+/**
+ * Function for the sumatory
+ * Attributes
+ * ----------
+ * Buffer : To retrieve the input.
+ * Relevant_nodes :
+ * sum_expansion :
+ */
+void expandSum(string buffer, vector<string> nodes, vector<string> &sumExp){
+	string builder1,builder2;
+	if(nodes.size()==1){
+		builder1 = buffer + ", +" + nodes[0];
+		sumExp.push_back(builder1);
+		builder2 = buffer + ", -" + nodes[0];
+		sumExp.push_back(builder2);
+	}else{
+		builder1 = buffer  + ", +" + nodes.back();
+		builder2 = buffer  + ", -" + nodes.back();
+		nodes.pop_back();
+		expandSum(builder1,nodes,sumExp);
+		expandSum(builder2,nodes,sumExp);
+	}
+}
+
+/**
+ * Function for the chain rule
+ * Attributes
+ * ----------
+ * Nodes : The map of nodes to add their Probabilities.
+ * Chain_probability : The string probability of chain rule.
+ */
 double chainRule(map<string, struct node*> nodes,string chainProb){
 	string builder, name;
 	char signs[]="+-";
@@ -42,6 +91,7 @@ double chainRule(map<string, struct node*> nodes,string chainProb){
 	  	index.push_back(builder);
 	}
 	for (int i = 0; i < index.size(); i++){
+	    //
 		std::map<string, double> copyMap = nodes[index[i]]->probabilityTable;
 		for (std::map<string,double>::iterator ite = copyMap.begin(); ite !=  copyMap.end(); ++ite){
 			if (ite->first.find(statements[i]) != std::string::npos) {
@@ -75,23 +125,14 @@ double chainRule(map<string, struct node*> nodes,string chainProb){
 	return acum;
 }
 
-void sumatoryExpand(string buffer, vector<string> relevantNodes, vector<string> &sumExp){
-	string builder1,builder2;
-	if(relevantNodes.size()==1){
-		builder1 = buffer + ", +" + relevantNodes[0];
-		sumExp.push_back(builder1);
-		builder2 = buffer + ", -" + relevantNodes[0];
-		sumExp.push_back(builder2);
-	}else{
-		builder1 = buffer  + ", +" + relevantNodes.back();
-		builder2 = buffer  + ", -" + relevantNodes.back();
-		relevantNodes.pop_back();
-		sumatoryExpand(builder1,relevantNodes,sumExp);
-		sumatoryExpand(builder2,relevantNodes,sumExp);
-	}
-}
-
-double solveJoint(map<string, struct node*> nodes, string buffer){
+/**
+ * Function to solve joint in the queries
+ * Attributes
+ * ----------
+ * Nodes : The map of nodes to add their Probabilities.
+ * Buffer : To retrieve the input.
+ */
+double solve_joint(map<string, struct node*> nodes, string buffer){
 	string builder,aux,picker,hidden="";
 	vector<string> sumExp;
 	std::vector<string> relevantNodes;
@@ -134,7 +175,7 @@ double solveJoint(map<string, struct node*> nodes, string buffer){
 	}
 
 	if(!relevantNodes.empty()){
-		sumatoryExpand(buffer,relevantNodes,sumExp);
+		expandSum(buffer,relevantNodes,sumExp);
 
 		for(int i=0;i<sumExp.size();i++){
 			acum+=chainRule(nodes,sumExp[i]);
@@ -148,7 +189,7 @@ double solveJoint(map<string, struct node*> nodes, string buffer){
 int main(int argc, char *argv[]){
 	std::map<string, struct node*> nodes;
 	string buffer, builder, bayesBuild, aux;
-	double readerProb;
+	double probs;
 	char devourer;
 	
 	int sect = 0;
@@ -173,7 +214,6 @@ int main(int argc, char *argv[]){
         		}
         	}
 			sect++;
-			
 		}else if(buffer.compare("[Probabilities]")==0){
 			//Create the Bayes Network
         	while(buffer.compare("")!=0){
@@ -230,12 +270,12 @@ int main(int argc, char *argv[]){
         			}while(devourer!='=');
         
         			
-        			extract >> readerProb;
+        			extract >> probs;
         
-        			(nodes[aux])->probabilityTable[bayesBuild]=readerProb;
+        			(nodes[aux])->probabilityTable[bayesBuild]=probs;
         
         			bayesBuild[0]='-';
-        			(nodes[aux])->probabilityTable[bayesBuild]=1 - readerProb;
+        			(nodes[aux])->probabilityTable[bayesBuild]=1 - probs;
         		}
         	}
 			sect++;
@@ -265,12 +305,11 @@ int main(int argc, char *argv[]){
             			}
             		}
             	}
-                
                 //Print the prob
             	if(denominator.compare("")==0){
-            		res = solveJoint(nodes,numerator);
+            		res = solve_joint(nodes,numerator);
             	}else{
-            		res = solveJoint(nodes,numerator) / solveJoint(nodes,denominator);
+            		res = solve_joint(nodes,numerator) / solve_joint(nodes,denominator);
             	}
             	printf("%.5G\n", res);
 				getline(cin,buffer);
