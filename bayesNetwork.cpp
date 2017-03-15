@@ -18,8 +18,8 @@ using namespace std;
  * Name: Name of the node.
  */
 struct node{
-	std::vector<struct node*> parents; 
-	std::map<string, double> probabilityTable;  
+	std::vector<struct node*> parents;
+	std::map<string, double> probabilityTable;
 	string name;
 };
 
@@ -137,7 +137,7 @@ double solve_joint(map<string, struct node*> nodes, string buffer){
 	vector<string> sumExp;
 	std::vector<string> relevantNodes;
 	double acum=0.0;
-	
+
 	for(int i=0;i < buffer.length();i++){
 		if(buffer[i]==','){
 			aux = hiddenNodes(nodes,builder);
@@ -145,7 +145,7 @@ double solve_joint(map<string, struct node*> nodes, string buffer){
 		}
 		if(buffer[i]=='+'||buffer[i]=='-'||buffer[i]==' '||buffer[i]==',');
 		else{
-			builder+=buffer[i]; 
+			builder+=buffer[i];
 		}
 		stringstream extract(aux);
 		while(extract >> picker){
@@ -163,7 +163,7 @@ double solve_joint(map<string, struct node*> nodes, string buffer){
 			hidden+= picker + " ";
 		}
 	}
-    
+
     //Hidden Nodes
 	stringstream extract2(hidden);
 	while(extract2 >> picker){
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]){
 	string buffer, builder, bayesBuild, aux;
 	double probs;
 	char devourer;
-	
+
 	int sect = 0;
 	while(sect < 3){
 		getline(cin,buffer);
@@ -223,20 +223,20 @@ int main(int argc, char *argv[]){
         		bool indexNode=false;
         		for(int i=0;i < buffer.length();i++){
         			if(buffer[i]=='|'){
-        				indexNode = true; 
+        				indexNode = true;
         				aux = bayesBuild;
         				bayesBuild="";
         			}
         			if(buffer[i]=='+'||buffer[i]=='-'||buffer[i]==' '||buffer[i]=='='||buffer[i]==','||buffer[i]=='|'||(buffer[i]>=48&&buffer[i]<=57));
         			else{
-        				bayesBuild+=buffer[i]; 
+        				bayesBuild+=buffer[i];
         			}
-        			if(indexNode){ 
+        			if(indexNode){
         					if(buffer[i]==','){
         						(nodes[aux])->parents.push_back(nodes[bayesBuild]);
         						bayesBuild="";
         					}else if (buffer[i]=='='){
-        						(nodes[aux])->parents.push_back(nodes[bayesBuild]); 
+        						(nodes[aux])->parents.push_back(nodes[bayesBuild]);
         						bayesBuild="";
         					}
         			}
@@ -250,7 +250,7 @@ int main(int argc, char *argv[]){
         		//No Duplicate Nodes
         		sort( (nodes[aux])->parents.begin(), (nodes[aux])->parents.end() );
         		(nodes[aux])->parents.erase( unique( (nodes[aux])->parents.begin(), (nodes[aux])->parents.end() ), (nodes[aux])->parents.end() );
-        
+
         		//Builds the probability table
         		bayesBuild="";
         		for(int i=0;i < buffer.length();i++){
@@ -261,58 +261,56 @@ int main(int argc, char *argv[]){
         				bayesBuild+=buffer[i];
         			}
         		}
-                
+
                 //Assign probs
         		if(bayesBuild.compare("")!=0){
         			stringstream extract(buffer);
         			do{
-        				extract >> devourer; 
+        				extract >> devourer;
         			}while(devourer!='=');
-        
-        			
+
+
         			extract >> probs;
-        
+
         			(nodes[aux])->probabilityTable[bayesBuild]=probs;
-        
+
         			bayesBuild[0]='-';
         			(nodes[aux])->probabilityTable[bayesBuild]=1 - probs;
         		}
         	}
 			sect++;
-			
+
 		}else if (buffer.compare("[Queries]")==0){
-			getline(cin,buffer);
-			while(buffer.compare("")!=0){
-			    //Solve the Query
-			    double res;
-            	string numerator, denominator;
-            	numerator="";
-            	denominator="";
-            	bool dependece=false;
-            	for (int i = 0; i < buffer.length(); i++){
-            		if(buffer[i]=='|'){
-            			dependece=true;
-            			numerator+=", ";
-            		}
-            		if(!dependece){
-            			if(buffer[i]!='|'){
-            				numerator+=buffer[i];
-            			}
-            		}else{
-            			if(buffer[i]!='|'){
-            				numerator+=buffer[i];
-            				denominator+=buffer[i];
-            			}
-            		}
-            	}
-                //Print the prob
-            	if(denominator.compare("")==0){
-            		res = solve_joint(nodes,numerator);
-            	}else{
-            		res = solve_joint(nodes,numerator) / solve_joint(nodes,denominator);
-            	}
-            	printf("%.5G\n", res);
-				getline(cin,buffer);
+			while(getline(cin,buffer)){
+				//Solve the Query
+			  double res;
+        string numerator, denominator;
+        numerator="";
+        denominator="";
+        bool dependece=false;
+        for (int i = 0; i < buffer.length(); i++){
+        	if(buffer[i]=='|'){
+        		dependece=true;
+        		numerator+=", ";
+          }
+          if(!dependece){
+          	if(buffer[i]!='|'){
+          		numerator+=buffer[i];
+          	}
+          }else{
+          	if(buffer[i]!='|'){
+          		numerator+=buffer[i];
+          		denominator+=buffer[i];
+          	}
+          }
+        }
+        //Print the prob
+        if(denominator.compare("")==0){
+        	res = solve_joint(nodes,numerator);
+        }else{
+        	res = solve_joint(nodes,numerator) / solve_joint(nodes,denominator);
+        }
+        printf("%.5G\n", res);
 			}
 			sect++;
 		}
