@@ -1,3 +1,6 @@
+#Specification file for Bayes Network of 
+# Burglary Alarm
+
 [Nodes]
 Burglary, Earthquake, Alarm, JohnCalls, MaryCalls
 
