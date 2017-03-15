@@ -313,9 +313,6 @@ int main(int argc, char *argv[]){
             	}
             	printf("%.5G\n", res);
 				getline(cin,buffer);
-				if(res == 0.5){
-					exit while;
-				}
 			}
 			sect++;
 		}
