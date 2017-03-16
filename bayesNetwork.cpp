@@ -295,7 +295,7 @@ int main(int argc, char *argv[]) {
 		} else if(buffer.compare("[Probabilities]") == 0){
 			create_bayes_network(nodes, buffer);
 			sect++;
-		}else if (buffer.compare("[Queries]") == 0){
+		} else if (buffer.compare("[Queries]") == 0){
 			while(getline(cin, buffer)){
 				solve_query(nodes, buffer);
 			}
