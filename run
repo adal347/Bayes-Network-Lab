@@ -1,1 +1,3 @@
-#!/bin/shg++ bayesNetwork.cpp -o bayesNetwork./bayesNetwork
+#!/bin/sh
+g++ -std=c++11 bayesNetwork.cpp -o program
+./program
