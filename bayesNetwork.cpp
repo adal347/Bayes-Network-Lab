@@ -11,8 +11,6 @@
 
 using namespace std;
 
-typedef pair<string,double> P;
-
 struct node {
 	std::vector<struct node*> parents;
 	std::map<string, double> probability_table;
@@ -122,10 +120,9 @@ string hidden_nodes(map<string, struct node*> nodes, string key_node) {
 
 double chain_rule(map<string, struct node*> nodes,string chain_probability){
 
-  string builder, name;
+  string builder;
 	char signs[] = "+-";
 	std::vector<string> index, statements, probs;
-  // To remove all ','
 	chain_probability.erase (std::remove(chain_probability.begin(), chain_probability.end(), ','), chain_probability.end());
 	stringstream extract(chain_probability);
 	double acum = 1.0;
@@ -287,9 +284,7 @@ void solve_query(map<string, struct node*> nodes, string buffer){
 int main(int argc, char *argv[]) {
 
 	std::map<string, struct node*> nodes;
-	string buffer, builder, aux;
-	char devourer;
-	double readerProb;
+	string buffer;
 	int sect = 0;
 
 	while(sect < 3){
