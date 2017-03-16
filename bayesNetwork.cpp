@@ -13,44 +13,22 @@ using namespace std;
 
 typedef pair<string,double> P;
 
-/**
- * Struct Node to add nodes at the Bayesian Network
- *
- * Attributes
- * ----------
- * Parents: The parents of the node. For 0 or N-parents;
- *          if the vector is empty, the event is Independient.
- * Probability_table: Probability table for actual node. Key is X in P(X).
- * Name: Name of the node.
- */
 struct node {
 	std::vector<struct node*> parents;
 	std::map<string, double> probability_table;
 	string name;
 };
 
-/**
- * Function to create the nodes for the bayesian network
- *
- * Attributes
- * ----------
- * Nodes : we add the node in map to know what are the nodes
- * Buffer : to retrieve the input
- */
 void create_nodes(map<string, struct node*> &nodes, string buffer) {
 
-  // The builder to build tha name string.
   string builder;
-  // Retrieve the line.
 	getline(cin, buffer);
 
   for(int i = 0; i < buffer.length(); i++){
-    // if we find ',' we add the node
     if(buffer[i]==',') {
       nodes[builder] = new node;
 			nodes[builder]->name = builder;
     } else if(i == (buffer.length() - 1)) {
-      // else if is the end we add the last node
 			builder += buffer[i];
 			nodes[builder] = new node;
 			nodes[builder]->name = builder;
@@ -62,14 +40,6 @@ void create_nodes(map<string, struct node*> &nodes, string buffer) {
 	}
 }
 
-/**
- * Function to create bayes network
- *
- * Attributes
- * ----------
- * Nodes : The map of nodes to add their Probabilities.
- * Buffer :  to retrieve the input.
- */
 void create_bayes_network(map<string, struct node*> &nodes, string buffer) {
 
   string builder, aux;
@@ -82,49 +52,39 @@ void create_bayes_network(map<string, struct node*> &nodes, string buffer) {
 		bool indexNode = false;
     for(int i = 0; i < buffer.length(); i++) {
       if(buffer[i] == '|'){
-        // if find '|' the node have a parent
         indexNode = true;
 				aux = builder;
 				builder="";
 			}
       if(buffer[i] == '+' || buffer[i] == '-' || buffer[i] == ' ' || buffer[i] == '=' || buffer[i] == ',' || buffer[i] == '|' || (buffer[i] >= 48 && buffer[i] <= 57));
 			else{
-        // Start to construct the string key for the map of nodes
         builder += buffer[i];
 			}
-      // To make the conection in base of the dependece
 			if(indexNode) {
         if(buffer[i] == ',') {
-          // To create N parents
           (nodes[aux])->parents.push_back(nodes[builder]);
 					builder="";
         } else if (buffer[i] == '=') {
-          // If there is only one parent
 					(nodes[aux])->parents.push_back(nodes[builder]);
 					builder="";
 				}
 			}
 			if(buffer[i] == '=') {
         if(!indexNode){
-          // The node is root P(X) is independient
 					aux=builder;
 				}
-        // Finish the creation of the edges
 				break;
 			}
 		}
 
-    //erase duplicated nodes
     sort( (nodes[aux])->parents.begin(), (nodes[aux])->parents.end() );
 		(nodes[aux])->parents.erase( unique( (nodes[aux])->parents.begin(), (nodes[aux])->parents.end() ), (nodes[aux])->parents.end() );
 
-		// Create the probability table
 		builder="";
 		for(int i = 0; i < buffer.length(); i++) {
 			if(buffer[i] == '=') {
 				break;
 			} else if(buffer[i] == ' ' && buffer[i + 1] == '=');
-        // To ignore the last blank space " ="
 			else {
 				builder+=buffer[i];
 			}
@@ -133,29 +93,18 @@ void create_bayes_network(map<string, struct node*> &nodes, string buffer) {
 		if(builder.compare("") != 0) {
 			stringstream extract(buffer);
 			do {
-        // To eat all chars
 				extract >> devourer;
 			} while(devourer!='=');
 
 			extract >> readerProb;
 
-      // Store the true values P(+X|Y)
 			(nodes[aux])->probability_table[builder]=readerProb;
-      // Store the true values P(-X|Y)
 			builder[0]='-';
 			(nodes[aux])->probability_table[builder]=1 - readerProb;
 		}
 	}
 }
 
-/**
- * Function to find hidden nodes in the joint
- *
- * Attributes
- * ----------
- * Nodes : The map of nodes to add their Probabilities.
- * key_node : The key node.
- */
 string hidden_nodes(map<string, struct node*> nodes, string key_node) {
 
   string builder = "";
@@ -171,14 +120,6 @@ string hidden_nodes(map<string, struct node*> nodes, string key_node) {
 	return builder;
 }
 
-/**
- * Function for the chain rule
- *
- * Attributes
- * ----------
- * Nodes : The map of nodes to add their Probabilities.
- * Chain_probability : The string probability of chain rule.
- */
 double chain_rule(map<string, struct node*> nodes,string chain_probability){
 
   string builder, name;
@@ -229,15 +170,6 @@ double chain_rule(map<string, struct node*> nodes,string chain_probability){
 	return acum;
 }
 
-/**
- * Function for the sumatory
- *
- * Attributes
- * ----------
- * Buffer : To retrieve the input.
- * Relevant_nodes :
- * sum_expansion :
- */
 void sumatory_expand(string buffer, vector<string> relevant_nodes, vector<string> &sum_expansion) {
 
   string builder1, builder2;
@@ -256,15 +188,6 @@ void sumatory_expand(string buffer, vector<string> relevant_nodes, vector<string
 	}
 }
 
-
-/**
- * Function to solve joint in the queries
- *
- * Attributes
- * ----------
- * Nodes : The map of nodes to add their Probabilities.
- * Buffer : To retrieve the input.
- */
 double solve_joint(map<string, struct node*> nodes, string buffer) {
 
   string builder,aux,picker,hidden = "";
@@ -277,7 +200,6 @@ double solve_joint(map<string, struct node*> nodes, string buffer) {
 		}
 		if(buffer[i] == '+' || buffer[i] == '-' || buffer[i] == ' ' || buffer[i] == ',');
 		else{
-      // To construct the string key for the map of nodes
 			builder += buffer[i];
 		}
 
@@ -327,13 +249,6 @@ double solve_joint(map<string, struct node*> nodes, string buffer) {
 	return acum;
 }
 
-/**
- * Function to solve the queries in the input
- * Attributes
- * ----------
- * Nodes : The map of nodes to add their Probabilities.
- * Buffer : To retrieve the input.
- */
 void solve_query(map<string, struct node*> nodes, string buffer){
 
   double res;
@@ -344,7 +259,6 @@ void solve_query(map<string, struct node*> nodes, string buffer){
 
   for(int i = 0; i < buffer.length(); i++){
 		if(buffer[i] == '|') {
-      // To know if has dependece
 			dependece = true;
 			numerator += ", ";
 		}
