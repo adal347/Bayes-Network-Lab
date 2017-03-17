@@ -1,0 +1,15 @@
+[Nodes]
+Sick, Homework, Class
+
+[Probabilities]
++Sick = 0.3
++Homework|+Sick=0.01
++Homework|-Sick=0.8
++Class|+Sick, +Homework= 0.6 
++Class|+Sick, -Homework= 0
++Class|-Sick, +Homework= 1
++Class|-Sick, -Homework= 0.7
+
+[Queries]
++Sick| -Class, -Homework
+-Sick| -Class
